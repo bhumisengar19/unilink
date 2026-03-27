@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
-import { Heart, MessageCircle, Share2, Plus, Search, TrendingUp, Users } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Plus, Search, TrendingUp, Users, BarChart3, Shield, CheckCircle2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Post {
@@ -12,6 +12,9 @@ interface Post {
     likes: string[];
     comments: any[];
     createdAt: string;
+    isAnonymous?: boolean;
+    isPoll?: boolean;
+    pollOptions?: { text: string, votes: string[] }[];
 }
 
 const Home: React.FC = () => {
@@ -20,6 +23,9 @@ const Home: React.FC = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [newPostText, setNewPostText] = useState('');
     const [loading, setLoading] = useState(true);
+    const [showPollInputs, setShowPollInputs] = useState(false);
+    const [pollOptions, setPollOptions] = useState<string[]>(['', '']);
+    const [isAnonymous, setIsAnonymous] = useState(false);
 
     const fetchPosts = async () => {
         try {
@@ -58,26 +64,51 @@ const Home: React.FC = () => {
             socket.on('newPost', (post: Post) => {
                 setPosts(prev => [post, ...prev]);
             });
+            socket.on('pollUpdate', ({ postId, pollOptions }: any) => {
+                setPosts(prev => prev.map(p => p._id === postId ? { ...p, pollOptions } : p));
+            });
         }
 
         return () => {
-            if (socket) socket.off('newPost');
+            if (socket) {
+                socket.off('newPost');
+                socket.off('pollUpdate');
+            }
         };
     }, [socket]);
 
     const handleCreatePost = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newPostText.trim()) return;
+        if (!newPostText.trim() && !showPollInputs) return;
 
         try {
             const config = {
                 headers: { Authorization: `Bearer ${user?.accessToken}` }
             };
-            const { data } = await axios.post('/api/posts', { text: newPostText }, config);
-            // Post will be added via socket event or manual append
+            const postData = {
+                text: newPostText,
+                isAnonymous,
+                isPoll: showPollInputs,
+                pollOptions: showPollInputs ? pollOptions.filter(o => o.trim()) : []
+            };
+            await axios.post('/api/posts', postData, config);
             setNewPostText('');
+            setShowPollInputs(false);
+            setPollOptions(['', '']);
+            setIsAnonymous(false);
         } catch (error) {
              console.error('Error creating post:', error);
+        }
+    };
+
+    const handleVote = async (postId: string, optionIndex: number) => {
+        try {
+            const config = {
+                headers: { Authorization: `Bearer ${user?.accessToken}` }
+            };
+            await axios.put(`/api/posts/vote/${postId}`, { optionIndex }, config);
+        } catch (error) {
+            console.error('Error voting:', error);
         }
     };
 
@@ -103,25 +134,66 @@ const Home: React.FC = () => {
                   className="glass-card p-6 border-indigo-500/20 shadow-indigo-500/5 relative overflow-hidden"
                 >
                     <div className="flex gap-4">
-                        <img 
-                            src={user?.profile?.profilePic || 'https://via.placeholder.com/40'} 
-                            alt="Profile" 
-                            className="w-10 h-10 rounded-full"
-                        />
                         <div className="flex-1">
-                            <textarea 
-                                placeholder="Share what's happening on campus..." 
-                                value={newPostText}
-                                onChange={(e) => setNewPostText(e.target.value)}
-                                className="w-full bg-transparent border-none focus:ring-0 text-slate-100 placeholder:text-slate-500 text-lg resize-none min-h-[100px]"
-                            />
-                            <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
-                                <div className="flex gap-2">
+                            <div className="flex gap-4 mb-4">
+                                <img 
+                                    src={user?.profile?.profilePic || 'https://via.placeholder.com/40'} 
+                                    alt="Profile" 
+                                    className="w-10 h-10 rounded-full"
+                                />
+                                <textarea 
+                                    placeholder="Share what's happening on campus..." 
+                                    value={newPostText}
+                                    onChange={(e) => setNewPostText(e.target.value)}
+                                    className="w-full bg-transparent border-none focus:ring-0 text-slate-100 placeholder:text-slate-500 text-lg resize-none min-h-[80px]"
+                                />
+                            </div>
+
+                            {showPollInputs && (
+                                <div className="space-y-3 mb-6 animate-slide-up pl-14">
+                                    <p className="text-[10px] font-black uppercase text-indigo-400 mb-2 tracking-widest flex items-center gap-2">
+                                        <BarChart3 size={14} /> Poll Options:
+                                    </p>
+                                    {pollOptions.map((opt, i) => (
+                                        <input 
+                                            key={i}
+                                            type="text"
+                                            value={opt}
+                                            onChange={(e) => {
+                                                const newOpts = [...pollOptions];
+                                                newOpts[i] = e.target.value;
+                                                setPollOptions(newOpts);
+                                            }}
+                                            placeholder={`Option ${i + 1}`}
+                                            className="w-full glass-card h-10 px-4 bg-slate-800/20 text-slate-200 text-sm font-medium border-slate-700/50"
+                                        />
+                                    ))}
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setPollOptions([...pollOptions, ''])}
+                                        className="text-[10px] font-black uppercase text-slate-500 hover:text-indigo-400 transition-colors tracking-widest pl-2"
+                                    >+ Add Option</button>
+                                </div>
+                            )}
+
+                            <div className="flex items-center justify-between pt-4 border-t border-slate-700/50 pl-14">
+                                <div className="flex gap-4 items-center">
                                      <button type="button" className="p-2 hover:bg-slate-700/50 rounded-lg text-slate-400">
                                         <Plus size={20} />
                                      </button>
+                                     <button type="button" onClick={() => setShowPollInputs(!showPollInputs)} className={`p-2 rounded-lg transition-colors ${showPollInputs ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-400 hover:text-indigo-400'}`}>
+                                        <BarChart3 size={20} />
+                                     </button>
+                                     
+                                     <div 
+                                        onClick={() => setIsAnonymous(!isAnonymous)} 
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer border transition-all ${isAnonymous ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' : 'border-slate-700 text-slate-500 hover:border-slate-600'}`}
+                                    >
+                                        <Shield size={14} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Anon</span>
+                                     </div>
                                 </div>
-                                <button type="submit" className="btn-primary py-1.5">
+                                <button type="submit" className="btn-primary py-1.5 px-6">
                                     Post
                                 </button>
                             </div>
@@ -137,17 +209,23 @@ const Home: React.FC = () => {
                         posts.map((post) => (
                             <div key={post._id} className="glass-card p-6 animate-fade-in">
                                 <div className="flex gap-4 mb-4">
-                                    <img 
-                                        src={post.author.profile?.profilePic || 'https://via.placeholder.com/40'} 
-                                        alt={post.author.name} 
-                                        className="w-12 h-12 rounded-full ring-2 ring-indigo-500/20"
-                                    />
+                                    {post.isAnonymous ? (
+                                        <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-slate-500 border border-slate-700">
+                                            <Shield size={22} className="text-rose-400 opacity-60" />
+                                        </div>
+                                    ) : (
+                                        <img 
+                                            src={post.author.profile?.profilePic || 'https://via.placeholder.com/40'} 
+                                            alt={post.author.name} 
+                                            className="w-12 h-12 rounded-full ring-2 ring-indigo-500/20"
+                                        />
+                                    )}
                                     <div>
                                         <h3 className="font-bold text-lg hover:text-indigo-400 transition-colors cursor-pointer">
-                                            {post.author.name}
+                                            {post.isAnonymous ? 'Guardian Peer' : post.author.name}
                                         </h3>
                                         <div className="flex items-center gap-2 text-xs text-slate-400">
-                                            <span>{post.author.profile?.branch}</span>
+                                            <span>{post.isAnonymous ? 'Anonymous' : post.author.profile?.branch}</span>
                                             <span>•</span>
                                             <span>{formatDistanceToNow(new Date(post.createdAt))} ago</span>
                                         </div>
@@ -157,6 +235,33 @@ const Home: React.FC = () => {
                                 <p className="text-slate-200 mb-6 leading-relaxed whitespace-pre-wrap">
                                     {post.content.text}
                                 </p>
+
+                                {post.isPoll && post.pollOptions && (
+                                    <div className="space-y-3 mb-6 pb-6 border-b border-slate-700/30">
+                                        {post.pollOptions.map((opt, i) => {
+                                            const totalVotes = post.pollOptions?.reduce((acc, o) => acc + (o.votes?.length || 0), 0) || 1;
+                                            const percentage = Math.round(((opt.votes?.length || 0) / totalVotes) * 100);
+                                            const hasVoted = opt.votes?.includes(user?._id || '');
+
+                                            return (
+                                                <div 
+                                                    key={i} 
+                                                    onClick={() => handleVote(post._id, i)}
+                                                    className={`relative h-12 glass-card border-none bg-slate-800/40 cursor-pointer overflow-hidden group/poll transition-all ${hasVoted ? 'ring-1 ring-indigo-500/30' : ''}`}
+                                                >
+                                                    <div className="absolute inset-y-0 left-0 bg-indigo-500/10 group-hover/poll:bg-indigo-500/20 transition-all duration-1000" style={{ width: `${percentage}%` }} />
+                                                    <div className="absolute inset-0 flex items-center justify-between px-4 z-10">
+                                                        <span className={`text-sm font-bold flex items-center gap-2 ${hasVoted ? 'text-indigo-400' : 'text-slate-300'}`}>
+                                                            {hasVoted && <CheckCircle2 size={14} />}
+                                                            {opt.text}
+                                                        </span>
+                                                        <span className="text-xs font-black text-slate-500">{percentage}%</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
 
                                 {post.content.images && post.content.images.length > 0 && (
                                      <div className="rounded-xl overflow-hidden border border-slate-700/50 mb-6">

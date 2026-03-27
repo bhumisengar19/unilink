@@ -10,6 +10,7 @@ import Events from './pages/Events';
 import Discovery from './pages/Discovery';
 import Leaderboard from './pages/Leaderboard';
 import Assistant from './pages/Assistant';
+import Opportunities from './pages/Opportunities';
 import AdminDashboard from './pages/AdminDashboard';
 import Sidebar from './components/Sidebar';
 
@@ -36,6 +37,7 @@ const App: React.FC = () => {
           <Route path="/discovery" element={user ? <Discovery /> : <Navigate to="/login" />} />
           <Route path="/leaderboard" element={user ? <Leaderboard /> : <Navigate to="/login" />} />
           <Route path="/assistant" element={user ? <Assistant /> : <Navigate to="/login" />} />
+          <Route path="/opportunities" element={user ? <Opportunities /> : <Navigate to="/login" />} />
           <Route 
             path="/admin" 
             element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} 

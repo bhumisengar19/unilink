@@ -35,6 +35,26 @@ const PostSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   }],
+  isAnonymous: {
+    type: Boolean,
+    default: false,
+  },
+  isPoll: {
+    type: Boolean,
+    default: false,
+  },
+  pollOptions: [{
+    text: String,
+    votes: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    }],
+  }],
+  type: {
+    type: String,
+    enum: ['post', 'opportunity', 'market'],
+    default: 'post',
+  },
 }, {
   timestamps: true,
 });

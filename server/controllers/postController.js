@@ -8,12 +8,15 @@ const { getIO } = require('../sockets/socketManager');
 // @access  Private
 const createPost = async (req, res) => {
   try {
-    const { text, images, links, tags } = req.body;
+    const { text, images, links, tags, isAnonymous, isPoll, pollOptions } = req.body;
     
     const post = await Post.create({
       author: req.user.id,
       content: { text, images, links },
       tags,
+      isAnonymous: isAnonymous || false,
+      isPoll: isPoll || false,
+      pollOptions: isPoll ? pollOptions.map(opt => ({ text: opt, votes: [] })) : [],
     });
 
     const fullPost = await Post.findById(post._id).populate('author', 'name profile.profilePic branch');
@@ -108,4 +111,31 @@ const addComment = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getPosts, likePost, addComment };
+// @desc    Vote in a poll
+// @route   PUT /api/posts/vote/:id
+// @access  Private
+const votePost = async (req, res) => {
+  try {
+    const { optionIndex } = req.body;
+    const post = await Post.findById(req.params.id);
+    if (!post || !post.isPoll) return res.status(404).json({ message: 'Poll not found' });
+
+    // Remove user's previous vote if any
+    post.pollOptions.forEach(opt => {
+      opt.votes = opt.votes.filter(v => v.toString() !== req.user.id.toString());
+    });
+
+    // Add new vote
+    post.pollOptions[optionIndex].votes.push(req.user.id);
+    
+    await post.save();
+    
+    getIO().emit('pollUpdate', { postId: post._id, pollOptions: post.pollOptions });
+
+    res.json({ success: true, pollOptions: post.pollOptions });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createPost, getPosts, likePost, addComment, votePost };
