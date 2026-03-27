@@ -11,6 +11,8 @@ import Discovery from './pages/Discovery';
 import Leaderboard from './pages/Leaderboard';
 import Assistant from './pages/Assistant';
 import Opportunities from './pages/Opportunities';
+import CampusMap from './pages/CampusMap';
+import StudyRoom from './pages/StudyRoom';
 import AdminDashboard from './pages/AdminDashboard';
 import Sidebar from './components/Sidebar';
 
@@ -38,6 +40,8 @@ const App: React.FC = () => {
           <Route path="/leaderboard" element={user ? <Leaderboard /> : <Navigate to="/login" />} />
           <Route path="/assistant" element={user ? <Assistant /> : <Navigate to="/login" />} />
           <Route path="/opportunities" element={user ? <Opportunities /> : <Navigate to="/login" />} />
+          <Route path="/map" element={user ? <CampusMap /> : <Navigate to="/login" />} />
+          <Route path="/rooms" element={user ? <StudyRoom /> : <Navigate to="/login" />} />
           <Route 
             path="/admin" 
             element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} 

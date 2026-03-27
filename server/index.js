@@ -47,6 +47,7 @@ const eventRoutes = require('./routes/eventRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const opportunityRoutes = require('./routes/opportunityRoutes');
+const roomRoutes = require('./routes/studyRoomRoutes');
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
@@ -58,6 +59,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/opportunities', opportunityRoutes);
+app.use('/api/rooms', roomRoutes);
 
 // Default Route
 app.get('/', (req, res) => {

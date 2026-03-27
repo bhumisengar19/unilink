@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, User, MessageCircle, Calendar, Shield, LogOut, Search, Trophy, Bot, Briefcase } from 'lucide-react';
+import { Home, User, MessageCircle, Calendar, Shield, LogOut, Search, Trophy, Bot, Briefcase, MapPin, BookOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar: React.FC = () => {
@@ -8,6 +8,8 @@ const Sidebar: React.FC = () => {
 
     const navItems = [
         { name: 'Home', path: '/', icon: Home },
+        { name: 'Campus', path: '/map', icon: MapPin },
+        { name: 'Sessions', path: '/rooms', icon: BookOpen },
         { name: 'Discovery', path: '/discovery', icon: Search },
         { name: 'Gigs', path: '/opportunities', icon: Briefcase },
         { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
