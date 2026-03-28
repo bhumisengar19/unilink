@@ -16,7 +16,7 @@ interface Message {
     _id: string;
     sender: any;
     content: string;
-    chat: string;
+    chat: any;
     createdAt: string;
 }
 
@@ -28,6 +28,8 @@ const ChatPage: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [search, setSearch] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const fetchChats = async () => {
@@ -38,19 +40,7 @@ const ChatPage: React.FC = () => {
             const { data } = await axios.get('/api/chats', config);
             setChats(data);
         } catch (error) {
-            console.warn('Using Mock Chats');
-            setChats([
-                {
-                    _id: 'c1', chatName: 'Sarah Chen', isGroupChat: false,
-                    users: [{ _id: user?._id }, { _id: 'u1', name: 'Sarah Chen', profile: { profilePic: 'https://i.pravatar.cc/150?u=1' } }],
-                    latestMessage: { content: 'See you at the hackathon!' }
-                },
-                {
-                    _id: 'g1', chatName: 'Programming Club', isGroupChat: true,
-                    users: [user, { _id: 'u2' }],
-                    latestMessage: { content: 'New workshop details posted!' }
-                }
-            ]);
+            console.error('Error fetching chats:', error);
         }
     };
 
@@ -65,15 +55,43 @@ const ChatPage: React.FC = () => {
             setMessages(data);
             if (socket) socket.emit('join', selectedChat._id);
         } catch (error) {
-             console.warn('Using Mock Messages');
-             setMessages([
-                 { _id: 'm1', sender: { _id: 'u1', name: 'Sarah Chen' }, content: 'Hey! Ready for the demo?', chat: 'c1', createdAt: new Date().toISOString() },
-                 { _id: 'm2', sender: { _id: user?._id, name: user?.name }, content: 'Absolutely! Port 5000 is live.', chat: 'c1', createdAt: new Date().toISOString() }
-             ]);
+             console.error('Error fetching messages:', error);
         } finally {
             setLoading(false);
         }
     };
+
+    const handleSearch = async (query: string) => {
+        setSearch(query);
+        if (!query) {
+            setSearchResults([]);
+            return;
+        }
+        try {
+            const config = { headers: { Authorization: `Bearer ${user?.accessToken}` } };
+            const { data } = await axios.get(`/api/users?search=${query}`, config);
+            setSearchResults(data.users);
+        } catch (error) {
+            console.error('Error searching users:', error);
+        }
+    };
+
+    const accessChat = async (userId: string) => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${user?.accessToken}` } };
+            const { data } = await axios.post('/api/chats', { userId }, config);
+            
+            if (!chats.find((c) => c._id === data._id)) {
+                fetchChats();
+            }
+            setSelectedChat(data);
+            setSearch('');
+            setSearchResults([]);
+        } catch (error) {
+            console.error('Error accessing chat:', error);
+        }
+    };
+
 
     useEffect(() => {
         fetchChats();
@@ -86,11 +104,13 @@ const ChatPage: React.FC = () => {
     useEffect(() => {
         if (socket) {
             socket.on('messageReceived', (message: Message) => {
-                if (selectedChat && selectedChat._id === message.chat) {
+                const incomingChatId = typeof message.chat === 'object' ? message.chat._id : message.chat;
+                
+                if (selectedChat && selectedChat._id === incomingChatId) {
                     setMessages(prev => [...prev, message]);
                 } else {
                     // Update latest message in chats list
-                    setChats(prev => prev.map(c => c._id === message.chat ? { ...c, latestMessage: message } : c));
+                    setChats(prev => prev.map(c => c._id === incomingChatId ? { ...c, latestMessage: message } : c));
                 }
             });
         }
@@ -141,16 +161,33 @@ const ChatPage: React.FC = () => {
                         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                         <input 
                             type="text" 
-                            placeholder="Search chats..." 
+                            placeholder="Search users to chat..." 
                             className="input-field pl-10"
+                            value={search}
+                            onChange={(e) => handleSearch(e.target.value)}
                         />
                     </div>
                 </div>
                 <div className="flex-1 overflow-y-auto">
-                    {chats.map(chat => (
-                        <div 
-                            key={chat._id}
-                            onClick={() => setSelectedChat(chat)}
+                    {searchResults.length > 0 ? (
+                        searchResults.map(searchedUser => (
+                            <div 
+                                key={searchedUser._id}
+                                onClick={() => accessChat(searchedUser._id)}
+                                className="p-4 flex gap-3 cursor-pointer transition-colors hover:bg-slate-700/30 border-l-4 border-transparent"
+                            >
+                                <img src={searchedUser.profile?.profilePic || 'https://via.placeholder.com/40'} className="w-12 h-12 rounded-full border border-slate-700" alt="avatar" />
+                                <div className="flex-1 flex flex-col justify-center">
+                                    <h4 className="font-semibold text-slate-200">{searchedUser.name}</h4>
+                                    <p className="text-xs text-slate-400">{searchedUser.email}</p>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        chats.map(chat => (
+                            <div 
+                                key={chat._id}
+                                onClick={() => setSelectedChat(chat)}
                             className={`p-4 flex gap-3 cursor-pointer transition-colors hover:bg-slate-700/30 border-l-4 ${selectedChat?._id === chat._id ? 'bg-indigo-500/10 border-indigo-500' : 'border-transparent'}`}
                         >
                             <img src={getSenderPic(chat)} className="w-12 h-12 rounded-full border border-slate-700" alt="avatar" />
@@ -164,7 +201,7 @@ const ChatPage: React.FC = () => {
                                 </p>
                             </div>
                         </div>
-                    ))}
+                    )))}
                 </div>
             </div>
 

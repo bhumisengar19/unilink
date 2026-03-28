@@ -8,36 +8,26 @@ const { getIO } = require('../sockets/socketManager');
 // @access  Private
 const createPost = async (req, res) => {
   try {
-    const { text, images, links, tags, isAnonymous, isPoll, pollOptions } = req.body;
+    const { text, images, links, tags, isAnonymous } = req.body;
     
     const post = await Post.create({
       author: req.user.id,
       content: { text, images, links },
       tags,
       isAnonymous: isAnonymous || false,
-      isPoll: isPoll || false,
-      pollOptions: isPoll ? pollOptions.map(opt => ({ text: opt, votes: [] })) : [],
     });
 
     const fullPost = await Post.findById(post._id).populate('author', 'name profile.profilePic branch');
     
     // Emit for real-time feed
     getIO().emit('newPost', fullPost);
-
-    // Update Points
-    const user = await User.findById(req.user.id);
-    user.gamification.points += 10;
-    await user.save();
-
+    // ... rest
     res.status(201).json({ success: true, post: fullPost });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Get all posts (Feed)
-// @route   GET /api/posts
-// @access  Public
 const getPosts = async (req, res) => {
   try {
     const { tag, search } = req.query;
@@ -45,7 +35,7 @@ const getPosts = async (req, res) => {
     if (tag) query.tags = tag;
     if (search) query['content.text'] = { $regex: search, $options: 'i' };
 
-    const posts = await Post.find(query)
+    let posts = await Post.find(query)
       .populate('author', 'name profile.profilePic branch')
       .populate({
         path: 'comments',
@@ -53,7 +43,20 @@ const getPosts = async (req, res) => {
       })
       .sort({ createdAt: -1 });
 
-    res.json({ success: true, posts });
+    // Anonymize authors if needed
+    const processedPosts = posts.map(post => {
+      const p = post.toObject();
+      if (p.isAnonymous) {
+        p.author = {
+          name: 'Anonymous Student',
+          profile: { profilePic: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' },
+          branch: 'Confidential'
+        };
+      }
+      return p;
+    });
+
+    res.json({ success: true, posts: processedPosts });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -111,31 +114,4 @@ const addComment = async (req, res) => {
   }
 };
 
-// @desc    Vote in a poll
-// @route   PUT /api/posts/vote/:id
-// @access  Private
-const votePost = async (req, res) => {
-  try {
-    const { optionIndex } = req.body;
-    const post = await Post.findById(req.params.id);
-    if (!post || !post.isPoll) return res.status(404).json({ message: 'Poll not found' });
-
-    // Remove user's previous vote if any
-    post.pollOptions.forEach(opt => {
-      opt.votes = opt.votes.filter(v => v.toString() !== req.user.id.toString());
-    });
-
-    // Add new vote
-    post.pollOptions[optionIndex].votes.push(req.user.id);
-    
-    await post.save();
-    
-    getIO().emit('pollUpdate', { postId: post._id, pollOptions: post.pollOptions });
-
-    res.json({ success: true, pollOptions: post.pollOptions });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-module.exports = { createPost, getPosts, likePost, addComment, votePost };
+module.exports = { createPost, getPosts, likePost, addComment };

@@ -10,6 +10,7 @@ interface User {
   accessToken: string;
   profile?: any;
   gamification?: any;
+  emergencyContacts?: { name: string, phone: string }[];
 }
 
 interface AuthContextType {
@@ -18,6 +19,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,40 +37,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, []);
 
-  const mockLogin = () => {
-    const demoUser = {
-      _id: 'mock_123',
-      name: 'Demo Student',
-      email: 'demo@university.edu',
-      role: 'admin',
-      accessToken: 'mock_token',
-      profile: {
-        bio: 'Explorer of technology and campus life.',
-        branch: 'Computer Science',
-        year: '3rd',
-        skills: ['React', 'Node.js', 'UI/UX'],
-        profilePic: 'https://i.pravatar.cc/150?u=demo'
-      },
-      gamification: { points: 1250 }
-    };
-    setUser(demoUser);
-    localStorage.setItem('unilink_user', JSON.stringify(demoUser));
-    navigate('/');
-  };
-
   const login = async (email: string, password: string) => {
     try {
-      if (email === 'demo@unilink.com' && password === 'demo123') {
-          return mockLogin();
-      }
       const { data } = await api.post('/api/auth/login', { email, password });
       setUser(data);
       localStorage.setItem('unilink_user', JSON.stringify(data));
       navigate('/');
     } catch (error: any) {
-      console.warn('Real login failed, try entering demo@unilink.com / demo123');
-      const msg = error.response?.data?.message || error.message || 'Login failed';
-      throw new Error(msg);
+      throw new Error(error.response?.data?.message || 'Login failed');
     }
   };
 
@@ -79,9 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('unilink_user', JSON.stringify(data));
       navigate('/');
     } catch (error: any) {
-      console.error('Registration error detail:', error.response?.data);
-      const msg = error.response?.data?.message || error.message || 'Registration failed';
-      throw new Error(msg);
+      throw new Error(error.response?.data?.message || 'Registration failed');
     }
   };
 
@@ -91,8 +65,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     navigate('/login');
   };
 
+  const updateUser = (userData: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      localStorage.setItem('unilink_user', JSON.stringify(updatedUser));
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

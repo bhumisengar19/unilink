@@ -1,19 +1,23 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, User, MessageCircle, Calendar, Shield, LogOut, Search, Trophy, Bot, Briefcase, MapPin, BookOpen } from 'lucide-react';
+import { Home, User, MessageCircle, Calendar, Shield, LogOut, Users, Map, Briefcase, BookOpen, Vote, ShoppingBag, FileText, Play } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import ThemeToggle from './ui/ThemeToggle';
+import Card from './ui/Card';
 
 const Sidebar: React.FC = () => {
     const { user, logout } = useAuth();
 
     const navItems = [
         { name: 'Home', path: '/', icon: Home },
-        { name: 'Campus', path: '/map', icon: MapPin },
-        { name: 'Sessions', path: '/rooms', icon: BookOpen },
-        { name: 'Discovery', path: '/discovery', icon: Search },
-        { name: 'Gigs', path: '/opportunities', icon: Briefcase },
-        { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
-        { name: 'Assistant', path: '/assistant', icon: Bot },
+        { name: 'Network', path: '/network', icon: Users },
+        { name: 'Campus Map', path: '/map', icon: Map },
+        { name: 'Campus Reels', path: '/reels', icon: Play },
+        { name: 'Marketplace', path: '/marketplace', icon: ShoppingBag },
+        { name: 'Resume Builder', path: '/resume', icon: FileText },
+        { name: 'Study Rooms', path: '/study-rooms', icon: BookOpen },
+        { name: 'Campus Polls', path: '/polls', icon: Vote },
+        { name: 'Career Board', path: '/opportunities', icon: Briefcase },
         { name: 'Chat', path: '/chat', icon: MessageCircle },
         { name: 'Events', path: '/events', icon: Calendar },
         { name: 'Profile', path: '/profile', icon: User },
@@ -24,50 +28,59 @@ const Sidebar: React.FC = () => {
     }
 
     return (
-        <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-800/80 backdrop-blur-xl border-r border-slate-700/50 p-6 flex flex-col z-50">
-            <div className="flex items-center gap-3 mb-12">
-                <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center font-bold text-xl shadow-lg shadow-indigo-500/20">
-                    U
-                </div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-rose-400 bg-clip-text text-transparent">
-                    UniLink
-                </h1>
-            </div>
-
-            <nav className="flex-1 flex flex-col gap-2">
-                {navItems.map((item) => (
-                    <NavLink
-                        key={item.name}
-                        to={item.path}
-                        className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                    >
-                        <item.icon size={20} />
-                        <span>{item.name}</span>
-                    </NavLink>
-                ))}
-            </nav>
-
-            <div className="pt-6 border-t border-slate-700/50 flex flex-col gap-4">
-                <div className="flex items-center gap-3 p-3 glass-card bg-slate-700/30">
-                    <img 
-                        src={user?.profile?.profilePic || 'https://via.placeholder.com/40'} 
-                        alt="Profile" 
-                        className="w-10 h-10 rounded-full border border-indigo-500/30"
-                    />
-                    <div className="flex-1 overflow-hidden">
-                        <p className="text-sm font-semibold truncate">{user?.name}</p>
-                        <p className="text-xs text-slate-400 lowercase">{user?.role}</p>
+        <aside className="fixed left-0 top-0 h-screen w-72 p-6 flex flex-col z-50 bg-[var(--bg)] transition-colors duration-300">
+            <Card variant="neu" className="h-full flex flex-col p-6 rounded-[32px] border-none">
+                <div className="flex items-center gap-3 mb-10 px-2">
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center font-black text-2xl text-white shadow-lg shadow-indigo-500/30">
+                        U
                     </div>
+                    <h1 className="text-2xl font-black bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent tracking-tight">
+                        UniLink
+                    </h1>
                 </div>
-                
-                <button 
-                   onClick={logout}
-                   className="flex items-center gap-2 px-4 py-2 text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
-                >
-                    <LogOut size={20} />
-                    <span>Logout</span>
-                </button>
-            </div>
+
+                <nav className="flex-1 flex flex-col gap-2 overflow-y-auto no-scrollbar pb-4 pr-2 -mr-2">
+                    {navItems.map((item) => (
+                        <NavLink
+                            key={item.name}
+                            to={item.path}
+                            className={({ isActive }) => `nav-link group ${isActive ? 'active' : ''}`}
+                        >
+                            <item.icon size={20} className="transition-transform duration-300 group-hover:scale-110" />
+                            <span className="text-sm font-semibold tracking-tight">{item.name}</span>
+                        </NavLink>
+                    ))}
+                </nav>
+
+                <div className="pt-6 mt-4 border-t border-[var(--shadow-dark)] flex flex-col gap-4">
+                    <div className="flex items-center justify-between px-2">
+                        <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Theme</span>
+                        <ThemeToggle />
+                    </div>
+
+                    <Card variant="neu" className="p-3 !rounded-2xl border-none shadow-[inset_2px_2px_5px_var(--shadow-dark),inset_-2px_-2px_5px_var(--shadow-light)] bg-transparent">
+                        <div className="flex items-center gap-3">
+                            <img 
+                                src={user?.profile?.profilePic || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'} 
+                                alt="Profile" 
+                                className="w-10 h-10 rounded-xl border-2 border-[var(--accent)] object-cover shadow-sm"
+                            />
+                            <div className="flex-1 overflow-hidden">
+                                <p className="text-xs font-bold truncate text-[var(--text-main)]">{user?.name}</p>
+                                <p className="text-[10px] text-[var(--accent)] font-bold uppercase tracking-tighter opacity-80">{user?.role}</p>
+                            </div>
+                        </div>
+                    </Card>
+                    
+                    <button 
+                       onClick={logout}
+                       className="flex items-center gap-3 px-4 py-3 text-rose-500 hover:bg-rose-500/5 rounded-xl transition-all group font-black text-xs uppercase tracking-widest"
+                    >
+                        <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </Card>
         </aside>
     );
 };

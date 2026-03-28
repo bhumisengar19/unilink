@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const cloudinary = require('../utils/cloudinary');
 
 // @desc    Get current user profile
 // @route   GET /api/users/me
@@ -45,6 +46,40 @@ const updateProfile = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update user profile picture
+// @route   PUT /api/users/profile-picture
+// @access  Private
+const updateProfilePic = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Please upload an image' });
+    }
+
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    
+    const cldRes = await cloudinary.uploader.upload(dataURI, {
+      folder: "unilink/profiles",
+      resource_type: "auto",
+    });
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.profile.profilePic = cldRes.secure_url;
+    await user.save();
+
+    res.json({
+      success: true,
+      profilePic: cldRes.secure_url,
+      user
+    });
+  } catch (error) {
+    console.error('Upload Error:', error);
+    res.status(500).json({ message: 'Error uploading image' });
   }
 };
 
@@ -133,4 +168,81 @@ const getUsers = async (req, res) => {
   }
 };
 
-module.exports = { getMe, updateProfile, connectUser, acceptConnection, getUsers };
+// @desc    Update user location
+// @route   PUT /api/users/location
+// @access  Private
+const updateLocation = async (req, res) => {
+  try {
+    const { lng, lat } = req.body;
+    if (lng === undefined || lat === undefined) {
+      return res.status(400).json({ message: 'Longitude and latitude required' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.location = {
+      type: 'Point',
+      coordinates: [lng, lat],
+    };
+
+    await user.save();
+    res.json({ success: true, message: 'Location updated', location: user.location });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get nearby students
+// @route   GET /api/users/nearby
+// @access  Private
+const getNearbyUsers = async (req, res) => {
+  try {
+    const { lng, lat, distance = 5000 } = req.query; // Default 5km
+    
+    if (!lng || !lat) {
+      return res.status(400).json({ message: 'Longitude and latitude query required' });
+    }
+
+    const nearbyUsers = await User.find({
+      _id: { $ne: req.user.id },
+      location: {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(lng), parseFloat(lat)],
+          },
+          $maxDistance: parseInt(distance),
+        },
+      },
+    }).select('name profile.profilePic profile.branch profile.year location');
+
+    res.json({ success: true, users: nearbyUsers });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update emergency contacts
+// @route   PUT /api/users/emergency-contacts
+// @access  Private
+const updateEmergencyContacts = async (req, res) => {
+  try {
+    const { contacts } = req.body;
+    if (!contacts || !Array.isArray(contacts)) {
+      return res.status(400).json({ message: 'Invalid contacts data' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.emergencyContacts = contacts.slice(0, 2); // Limit to 2
+    await user.save();
+
+    res.json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { getMe, updateProfile, updateProfilePic, updateEmergencyContacts, connectUser, acceptConnection, getUsers, updateLocation, getNearbyUsers };

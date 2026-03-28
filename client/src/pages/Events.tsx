@@ -25,21 +25,7 @@ const Events: React.FC = () => {
             const { data } = await axios.get('/api/events');
             setEvents(data.events);
         } catch (error) {
-            console.warn('Using Mock Events');
-            setEvents([
-                {
-                    _id: 'e1', title: 'Global University Hackathon 2026', 
-                    description: '24 hours of coding, networking, and innovation. Food and drinks provided!',
-                    location: 'Main Auditorium, North Campus', date: new Date(Date.now() + 86400000).toISOString(),
-                    organizer: { name: 'Sarah Chen' }, eventType: 'hackathon', attendees: []
-                },
-                {
-                    _id: 'e2', title: 'React & Post-Modern Web Workshop', 
-                    description: 'Learn the latest trends in web development including Server Components and AI-Integration.',
-                    location: 'Virtual Session via Zoom', date: new Date(Date.now() + 172800000).toISOString(),
-                    organizer: { name: 'Sarah Chen' }, eventType: 'workshop', attendees: []
-                }
-            ]);
+            console.error('Error fetching events:', error);
         } finally {
             setLoading(false);
         }

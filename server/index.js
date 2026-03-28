@@ -3,23 +3,19 @@ const express = require('express');
 const http = require('http');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
+const { rateLimit } = require('express-rate-limit');
 const connectDB = require('./config/db');
 const { initSocket } = require('./sockets/socketManager');
 
 const app = express();
 const server = http.createServer(app);
 
-// Start Server
-const startServer = async () => {
-  try {
-    // Sockets initialization
-    initSocket(server);
-
-    // Connect to MongoDB
-    await connectDB();
-
 // Middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
+
 app.use(helmet({
   contentSecurityPolicy: false,
 }));
@@ -47,7 +43,10 @@ const eventRoutes = require('./routes/eventRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const opportunityRoutes = require('./routes/opportunityRoutes');
-const roomRoutes = require('./routes/studyRoomRoutes');
+const studyRoomRoutes = require('./routes/studyRoomRoutes');
+const pollRoutes = require('./routes/pollRoutes');
+const marketplaceRoutes = require('./routes/marketplaceRoutes');
+const reelRoutes = require('./routes/reelRoutes');
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
@@ -59,7 +58,10 @@ app.use('/api/events', eventRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/opportunities', opportunityRoutes);
-app.use('/api/rooms', roomRoutes);
+app.use('/api/study-rooms', studyRoomRoutes);
+app.use('/api/polls', pollRoutes);
+app.use('/api/marketplace', marketplaceRoutes);
+app.use('/api/reels', reelRoutes);
 
 // Default Route
 app.get('/', (req, res) => {
@@ -75,6 +77,15 @@ app.use((err, req, res, next) => {
     error: process.env.NODE_ENV === 'development' ? err.message : {}
   });
 });
+
+// Start Server
+const startServer = async () => {
+  try {
+    // Sockets initialization
+    initSocket(server);
+
+    // Connect to MongoDB
+    await connectDB();
 
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, () => {

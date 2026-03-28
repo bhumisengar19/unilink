@@ -36,19 +36,11 @@ const UserSchema = new mongoose.Schema({
     year: String,
     skills: [String],
     interests: [String],
-    lookingFor: [String], // Skills searching for in teammates
-    preferredCareer: [String],
-    location: {
-      type: { type: String, enum: ['Point'], default: 'Point' },
-      coordinates: { type: [Number], default: [0, 0] } // [longitude, latitude]
-    },
+    github: String,
+    linkedin: String,
     profilePic: {
       type: String,
       default: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-    },
-    isAnonymous: {
-      type: Boolean,
-      default: false,
     },
   },
   connections: [{
@@ -65,23 +57,29 @@ const UserSchema = new mongoose.Schema({
       default: 0,
     },
     badges: [String],
-    level: {
-      type: Number,
-      default: 1,
+  },
+  location: {
+    type: {
+      type: String,
+      enum: ['Point'],
+    },
+    coordinates: {
+      type: [Number],
+      index: '2dsphere',
     },
   },
   refreshToken: String,
+  emergencyContacts: [{
+    name: String,
+    phone: String,
+  }],
 }, {
   timestamps: true,
 });
 
-// Geospatial index for nearby users
-UserSchema.index({ "profile.location": "2dsphere" });
-
-// Hash password before saving
-UserSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function () {
   if (!this.isModified('password')) {
-    next();
+    return;
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

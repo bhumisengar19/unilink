@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, UserPlus, LogIn, Github } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
 
 const Login: React.FC = () => {
     const { login } = useAuth();
@@ -21,7 +24,8 @@ const Login: React.FC = () => {
              confetti({
                 particleCount: 150,
                 spread: 70,
-                origin: { y: 0.6 }
+                origin: { y: 0.6 },
+                colors: ['#6366f1', '#a855f7', '#ec4899']
              });
         } catch (err: any) {
             setError(err.message);
@@ -31,94 +35,93 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden">
-            {/* Background elements */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl -z-10 animate-pulse" />
-            <div className="absolute bottom-0 left-0 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl -z-10 animate-pulse delay-500" />
+        <div className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden bg-[var(--bg)] transition-colors duration-300">
+            {/* Soft Background Blobs */}
+            <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[120px] -z-10 animate-pulse" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[100px] -z-10 animate-pulse delay-700" />
             
-            <div className="max-w-md w-full glass-card p-10 space-y-8 animate-fade-in">
-                <div className="text-center space-y-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-rose-500 rounded-2xl mx-auto flex items-center justify-center shadow-2xl shadow-indigo-500/20">
-                        <LogIn className="text-white" size={32} />
+            <Card variant="neu" className="max-w-md w-full p-10 space-y-8 !rounded-[40px] border-none shadow-2xl">
+                <div className="text-center space-y-6">
+                    <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl mx-auto flex items-center justify-center shadow-xl shadow-indigo-500/20 transform -rotate-6 hover:rotate-0 transition-transform duration-500">
+                        <LogIn className="text-white" size={36} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <h2 className="text-4xl font-black text-slate-100 mb-2">Welcome Back</h2>
-                        <p className="text-slate-400 font-medium">Connect with your campus community</p>
+                        <h2 className="text-4xl font-black text-[var(--text-main)] mb-2 tracking-tight">Welcome Back</h2>
+                        <p className="text-[var(--text-muted)] font-bold uppercase text-[10px] tracking-[0.2em] opacity-70">Elevate Your Campus Experience</p>
                     </div>
                 </div>
 
                 {error && (
-                    <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-sm text-center font-medium animate-shake">
+                    <Card variant="neu" className="p-4 !bg-rose-500/5 border-none !rounded-2xl text-rose-500 text-sm text-center font-bold shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05)]">
                         {error}
-                    </div>
+                    </Card>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-400 ml-1">Campus Email</label>
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-4 mb-2 block">Campus Email</label>
                         <div className="relative group">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={20} />
-                            <input 
+                            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--accent)] transition-colors z-10" size={20} />
+                            <Input 
                                 type="email" 
                                 required 
                                 value={email} 
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="name@university.edu"
-                                className="input-field pl-12 h-12"
+                                className="pl-14 h-14 !rounded-2xl font-bold"
                             />
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                         <label className="text-sm font-semibold text-slate-400 ml-1">Password</label>
+                    <div className="space-y-1">
+                         <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-4 mb-2 block">Password</label>
                         <div className="relative group">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={20} />
-                            <input 
+                            <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--accent)] transition-colors z-10" size={20} />
+                            <Input 
                                 type="password" 
                                 required 
                                 value={password} 
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="input-field pl-12 h-12"
+                                className="pl-14 h-14 !rounded-2xl font-bold"
                             />
                         </div>
-                        <div className="text-right">
-                             <button type="button" className="text-sm text-indigo-400 hover:text-indigo-300 font-medium transition-colors">Forgot password?</button>
+                        <div className="text-right px-2">
+                             <button type="button" className="text-xs text-[var(--accent)] hover:underline font-black uppercase tracking-tighter transition-all">Forgot password?</button>
                         </div>
                     </div>
 
-                    <button 
+                    <Button 
                         type="submit" 
                         disabled={loading}
-                        className="btn-primary w-full h-12 text-lg font-bold flex items-center justify-center gap-2"
+                        fullWidth
+                        className="h-14 !rounded-2xl text-lg font-black uppercase tracking-widest shadow-lg"
                     >
-                        {loading ? <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : 'Sign In'}
-                    </button>
+                        {loading ? <div className="w-6 h-6 border-4 border-white/20 border-t-white rounded-full animate-spin" /> : 'Sign In'}
+                    </Button>
                     
-                    <div className="relative flex items-center gap-4 text-slate-500 py-4">
-                        <div className="flex-1 h-px bg-slate-700/50" />
-                        <span className="text-sm font-bold uppercase tracking-wider">or</span>
-                        <div className="flex-1 h-px bg-slate-700/50" />
+                    <div className="relative flex items-center gap-4 text-[var(--text-muted)] py-2">
+                        <div className="flex-1 h-[2px] bg-[var(--shadow-dark)] rounded-full" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-50">OR</span>
+                        <div className="flex-1 h-[2px] bg-[var(--shadow-dark)] rounded-full" />
                     </div>
                     
-                    <div className="grid grid-cols-1 gap-4">
-                         <button type="button" className="w-full glass-card hover:bg-slate-700/50 h-12 flex items-center justify-center gap-3 transition-colors font-semibold">
-                            <Github size={20} />
-                            <span>Google Login</span>
-                        </button>
-                    </div>
+                    <Button variant="secondary" fullWidth className="h-14 !rounded-2xl gap-3 border-none shadow-md">
+                        <Github size={20} />
+                        <span className="font-black text-xs uppercase tracking-widest">Connect with Google</span>
+                    </Button>
                 </form>
 
-                <div className="text-center">
-                    <p className="text-slate-400 font-medium">
+                <div className="text-center pt-4">
+                    <p className="text-[var(--text-muted)] text-sm font-bold">
                         New on UniLink? {' '}
-                        <Link to="/register" className="text-indigo-400 hover:text-indigo-300 font-bold transition-colors inline-flex items-center gap-1 group">
+                        <Link to="/register" className="text-[var(--accent)] hover:text-indigo-400 font-black transition-all inline-flex items-center gap-1 group uppercase tracking-tighter">
                             Create account
                             <UserPlus size={16} className="group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </p>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 };

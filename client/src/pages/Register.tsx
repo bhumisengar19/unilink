@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, User, UserPlus, LogIn, ChevronRight } from 'lucide-react';
+import { Mail, Lock, User, UserPlus, LogIn, ChevronRight, Github } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
 
 const Register: React.FC = () => {
     const { register } = useAuth();
@@ -22,7 +25,8 @@ const Register: React.FC = () => {
              confetti({
                 particleCount: 150,
                 spread: 70,
-                origin: { y: 0.6 }
+                origin: { y: 0.6 },
+                colors: ['#6366f1', '#10b981', '#fbbf24']
              });
         } catch (err: any) {
             setError(err.message);
@@ -32,106 +36,107 @@ const Register: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl -z-10 animate-pulse" />
-            <div className="absolute bottom-0 right-0 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl -z-10 animate-pulse delay-500" />
-
-            <div className="max-w-md w-full glass-card p-10 space-y-8 animate-fade-in">
-                <div className="text-center space-y-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-emerald-500 rounded-2xl mx-auto flex items-center justify-center shadow-2xl shadow-indigo-500/20">
-                        <UserPlus className="text-white" size={32} />
+        <div className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden bg-[var(--bg)] transition-colors duration-300">
+            {/* Soft Background Blobs */}
+            <div className="absolute top-[-5%] left-[-5%] w-[450px] h-[450px] bg-emerald-500/5 rounded-full blur-[100px] -z-10 animate-pulse" />
+            <div className="absolute bottom-[-5%] right-[-5%] w-[450px] h-[450px] bg-indigo-500/5 rounded-full blur-[100px] -z-10 animate-pulse delay-700" />
+            
+            <Card variant="neu" className="max-w-md w-full p-10 space-y-8 !rounded-[40px] border-none shadow-2xl">
+                <div className="text-center space-y-6">
+                    <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-emerald-500 rounded-3xl mx-auto flex items-center justify-center shadow-xl shadow-indigo-500/20 transform rotate-6 hover:rotate-0 transition-transform duration-500">
+                        <UserPlus className="text-white" size={36} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <h2 className="text-4xl font-black text-slate-100 mb-2">Join UniLink</h2>
-                        <p className="text-slate-400 font-medium italic">Empower your campus networking</p>
+                        <h2 className="text-4xl font-black text-[var(--text-main)] mb-2 tracking-tight">Join UniLink</h2>
+                        <p className="text-[var(--text-muted)] font-bold uppercase text-[10px] tracking-[0.2em] opacity-70">Empower Your Academic Journey</p>
                     </div>
                 </div>
 
                 {error && (
-                    <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-sm text-center font-medium animate-shake">
+                    <Card variant="neu" className="p-4 !bg-rose-500/5 border-none !rounded-2xl text-rose-500 text-sm text-center font-bold shadow-[inset_2px_2px_5px_rgba(0,0,0,0.05)]">
                         {error}
-                    </div>
+                    </Card>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                         <label className="text-sm font-semibold text-slate-400 ml-1">Full Name</label>
+                    <div className="space-y-1">
+                         <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-4 mb-2 block">Full Name</label>
                         <div className="relative group">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={20} />
-                            <input 
+                            <User className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--accent)] transition-colors z-10" size={20} />
+                            <Input 
                                 type="text" 
                                 required 
                                 value={name} 
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="John Doe"
-                                className="input-field pl-12 h-12"
+                                className="pl-14 h-14 !rounded-2xl font-bold"
                             />
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-400 ml-1">Campus Email</label>
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-4 mb-2 block">Campus Email</label>
                         <div className="relative group">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={20} />
-                            <input 
+                            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--accent)] transition-colors z-10" size={20} />
+                            <Input 
                                 type="email" 
                                 required 
                                 value={email} 
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="name@university.edu"
-                                className="input-field pl-12 h-12"
+                                className="pl-14 h-14 !rounded-2xl font-bold"
                             />
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-400 ml-1">Password</label>
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-4 mb-2 block">Create Password</label>
                         <div className="relative group">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors" size={20} />
-                            <input 
+                            <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--accent)] transition-colors z-10" size={20} />
+                            <Input 
                                 type="password" 
                                 required 
                                 value={password} 
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="input-field pl-12 h-12"
+                                className="pl-14 h-14 !rounded-2xl font-bold"
                             />
                         </div>
-                        <p className="text-xs text-slate-500 italic mt-1 ml-1 px-1 line-clamp-1 truncate">Min. 6 characters required</p>
+                        <p className="text-[9px] text-[var(--text-muted)] italic mt-2 ml-4 font-bold opacity-60 uppercase tracking-tighter uppercase">Min. 6 characters for better security</p>
                     </div>
 
-                    <button 
+                    <Button 
                         type="submit" 
                         disabled={loading}
-                        className="btn-primary w-full h-12 text-lg font-bold flex items-center justify-center gap-2 group"
+                        fullWidth
+                        className="h-14 !rounded-2xl text-lg font-black uppercase tracking-widest shadow-lg group"
                     >
-                        {loading ? <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : 'Get Started'}
-                        <ChevronRight className="group-hover:translate-x-1 transition-transform" />
-                    </button>
+                        {loading ? <div className="w-6 h-6 border-4 border-white/20 border-t-white rounded-full animate-spin" /> : 'Get Started'}
+                        {!loading && <ChevronRight className="group-hover:translate-x-1 transition-transform" strokeWidth={3} />}
+                    </Button>
                     
-                    <div className="relative flex items-center gap-4 text-slate-500 py-4">
-                        <div className="flex-1 h-px bg-slate-700/50" />
-                        <span className="text-sm font-bold uppercase tracking-wider">or sign up with</span>
-                        <div className="flex-1 h-px bg-slate-700/50" />
+                    <div className="relative flex items-center gap-4 text-[var(--text-muted)] py-2">
+                        <div className="flex-1 h-[2px] bg-[var(--shadow-dark)] rounded-full" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50">OR</span>
+                        <div className="flex-1 h-[2px] bg-[var(--shadow-dark)] rounded-full" />
                     </div>
                     
-                    <div className="grid grid-cols-1 gap-4">
-                         <button type="button" className="w-full glass-card hover:bg-slate-700/50 h-10 flex items-center justify-center gap-3 transition-colors font-semibold">
-                            Google Login
-                        </button>
-                    </div>
+                    <Button variant="secondary" fullWidth className="h-14 !rounded-2xl gap-3 border-none shadow-md">
+                        <Github size={20} />
+                        <span className="font-black text-xs uppercase tracking-widest">Register with Google</span>
+                    </Button>
                 </form>
 
-                <div className="text-center">
-                    <p className="text-slate-400 font-medium">
-                        Already have an account? {' '}
-                        <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-bold transition-colors inline-flex items-center gap-1 group">
+                <div className="text-center pt-4">
+                    <p className="text-[var(--text-muted)] text-sm font-bold">
+                        Already a member? {' '}
+                        <Link to="/login" className="text-[var(--accent)] hover:text-indigo-400 font-black transition-all inline-flex items-center gap-1 group uppercase tracking-tighter">
                             Sign in here
                             <LogIn size={16} className="group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </p>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 };

@@ -24,6 +24,12 @@ const initSocket = (server) => {
       io.to(receiverId).emit('receiveMessage', { senderId, message });
     });
 
+    // SOS Alert
+    socket.on('sendSOS', ({ userId, name, location, contacts }) => {
+      // Broadcast to all active users as a safety measure
+      socket.broadcast.emit('emergencyAlert', { userId, name, location, contacts });
+    });
+
     socket.on('disconnect', () => {
       console.log('User disconnected');
     });

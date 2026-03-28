@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getRooms, createRoom, joinRoom } = require('../controllers/studyRoomController');
+const { getStudyRooms, createStudyRoom, joinStudyRoom } = require('../controllers/studyRoomController');
 const { protect } = require('../middleware/authMiddleware');
 
-router.get('/', getRooms);
-router.post('/', protect, createRoom);
-router.put('/join/:id', protect, joinRoom);
+router.get('/', protect, getStudyRooms);
+router.post('/', protect, createStudyRoom);
+router.post('/:id/join', protect, joinStudyRoom);
 
 module.exports = router;

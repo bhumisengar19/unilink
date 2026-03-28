@@ -3,42 +3,35 @@ const mongoose = require('mongoose');
 const OpportunitySchema = new mongoose.Schema({
   title: {
     type: String,
-    required: [true, 'Please add a title'],
-    trim: true,
-  },
-  description: {
-    type: String,
-    required: [true, 'Please add a description'],
+    required: true,
   },
   type: {
     type: String,
-    enum: ['internship', 'full-time', 'part-time', 'research', 'volunteering'],
+    enum: ['internship', 'hackathon', 'job', 'event'],
     required: true,
   },
-  location: {
+  company: {
     type: String,
-    default: 'Remote',
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
   },
   deadline: {
     type: Date,
+    required: true,
+  },
+  link: {
+    type: String,
+    required: true,
   },
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
-  requirements: [String],
-  link: String,
-  applicants: [{
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    appliedAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
+  tags: [String],
 }, {
   timestamps: true,
 });
